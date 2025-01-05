@@ -1,0 +1,16 @@
+Package: scREALTIME
+Type: Package
+Title: Single-cell Transcriptome Dynamics from Time-series scRNAseq
+Version: 0.1.0
+Author: person("Katherine", "Sheu", , "katherinesheu@ucla.edu", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-3811-3356"))
+Maintainer: Katherine Sheu <katherinesheu@ucla.edu>
+Description: Single-cell Real-time Ensemble Archetype Linkage of Time-series Measurements (scREAL-TIME). A single-cell 'omics tool that takes in annotated scRNAseq data collected as time-series, and outputs single-cell transcriptome trajectories over real-time. 
+License: use_mit_license()
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.1
+Imports: 
+	Seurat,
+	NbClust,
+	matrixStats

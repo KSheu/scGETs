@@ -1,0 +1,3 @@
+exportPattern("^[[:alpha:]]+")
+importFrom("stats", "aggregate", "approxfun", "dist", "kmeans", "loess", "median", "predict", "smooth.spline")
+importFrom("utils", "tail")
