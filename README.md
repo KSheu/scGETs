@@ -1,7 +1,7 @@
 # scGETs Imputation
 Single-cell Gene Expression Trajectory (scGETs) imputation package: a method for imputing stimulus-induced gene expression dynamics in single cells from time-series scRNASeq.
 
-<img src="https://github.com/KSheu/scGETs/blob/main/GA_scGETs_protocol.png" width="10" height="10">
+<img src="https://github.com/KSheu/scGETs/blob/main/GA_scGETs_protocol.png" width="100" height="100">
 
 
 ## Dependencies
