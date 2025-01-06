@@ -1,7 +1,7 @@
 # scGETs Imputation
 Single-cell Gene Expression Trajectory (scGETs) imputation package: a method for imputing stimulus-induced gene expression dynamics in single cells from time-series scRNASeq.
 
-<img src="https://github.com/KSheu/scGETs/blob/main/GA_scGETs_protocol.png" width="100" height="100">
+<img src="https://github.com/KSheu/scGETs/blob/main/GA_scGETs_protocol.png" width="350" height="350">
 
 
 ## Dependencies
@@ -31,11 +31,10 @@ We can use the macrophage example data provided in the 'output' folder to run sc
 macro = readRDS("./output/macrophage_M0_rep2only_500genes_DBEC.rds")
 select_timepoints = c(0.0, 0.25, 1, 3, 8)
 metadata = getMetaData(macro, stimulus = "LPS", timepoints= select_timepoints)
-reconst = scGETs(macro = macro, metadata = metadata, timepoints = select_timepoints,
-							num_archetypes = 20, data = "ISNorm",
-							num_trajectories = 1000, num_sim_pts = 100,
-							reduction = 'pca', stimulus = "LPS", consensus_measure = 'median',
-							interpolant = 'spline', prob_method = 'distance', distance_metric = 'euclidean' ,
+reconst = scGETs(macro = macro, metadata = metadata, timepoints = select_timepoints, stimulus = "LPS",
+							num_archetypes = 20, num_sim_pts = 100, num_trajectories = 1000, 
+							reduction = 'pca', consensus_measure = 'median', interpolant = 'spline', 
+							data = "ISnorm", prob_method = 'distance', distance_metric = 'euclidean' ,
 							varFilter = T, exp_prob = 1) 
 							
 

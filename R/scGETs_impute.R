@@ -3,7 +3,7 @@
 # contact: katherinesheu[at]ucla[dot]edu
 
 
-#' scREALTIME
+#' scREALTIME - single-cell Reconstruction of Expression using Archetype Linkage of TIme-series MEasurements
 #' Input a Seurat object of single cell data and returns list object containing single cell trajectories
 #' @param macro Seurat object of single cell data with multiple measured timepoints
 #' @param metadata Metadata frame of the measured single cells, obtain with getMetaData
@@ -24,7 +24,7 @@
 
 # scREALTIME
 # Input a Seurat object of single cell data and returns list object containing single cell trajectories
-scGETs = function(input_obj, metadata, num_archetypes=20, timepoints, num_trajectories = 1000, num_sim_pts = 100,
+scREALTIME = function(input_obj, metadata, num_archetypes=20, timepoints, num_trajectories = 1000, num_sim_pts = 100,
                       reduction = "pca", stimulus, consensus_measure = "median", interpolant="spline", data = "RNA", prob_method = 'distance', distance_metric = 'euclidean', varFilter = T, exp_prob = 1){
 
   # Retrieve desired data subset for each timepoint
@@ -38,7 +38,7 @@ scGETs = function(input_obj, metadata, num_archetypes=20, timepoints, num_trajec
   if(data == 'RNA'){
     RNA <- as.data.frame(input_obj@assays$RNA@data)
   }
-  else if(data == 'ISNorm'){
+  else if(data == 'ISnorm'){
     RNA <- as.data.frame(input_obj@assays$ISnorm@data)
   }
   RNA <- t(RNA)
@@ -118,7 +118,7 @@ scGETs = function(input_obj, metadata, num_archetypes=20, timepoints, num_trajec
   rownames(aggreg_pcscores) = aggreg_pcscores$Group.1
 
   # Generate transition probability matrices based on distance between clusters
-  distances = as.matrix(dist(aggreg_pcscores[,3:ncol(aggreg_pcscores)],method = distance_metric))
+  distances = as.matrix(dist(aggreg_pcscores[,4:ncol(aggreg_pcscores)],method = distance_metric))
   rownames(distances) = aggreg_pcscores$Group.1
   colnames(distances) = aggreg_pcscores$Group.1
 
