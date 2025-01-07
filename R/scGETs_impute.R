@@ -128,6 +128,7 @@ scREALTIME = function(input_obj, metadata, num_archetypes=20, timepoints, num_tr
   walk_probs[,1] = c(1:num_trajectories)
 
   if(prob_method == 'distance'){
+    print("Generating random walks based on distance between clusters")
     for(i in 1:num_trajectories){
       path <- c()
       for(j in 1:length(timepoints)){
@@ -147,6 +148,7 @@ scREALTIME = function(input_obj, metadata, num_archetypes=20, timepoints, num_tr
       walks[[i]] <- path
     }
   }else if(prob_method == 'density'){
+    print("Generating random walks based on cluster densities")
     for(i in 1:num_trajectories){
       cur_prob = 1
       path <- c()
@@ -156,7 +158,7 @@ scREALTIME = function(input_obj, metadata, num_archetypes=20, timepoints, num_tr
         path <- c(path, next_value)
       }
       walks[[i]] <- path
-      walk_probs[i,2] <- cur_prob
+      walk_probs[i,j] <- cur_prob
     }
   }else{
     print('Invalid method for random walk probabilities')

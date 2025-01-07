@@ -43,17 +43,17 @@ The outputs of the imputation method are stored in a user-specified object, in t
 
 ### Input
 Parameters specifying the input data are:
-- input_obj: The Seurat Object containing the data.
-- metadata: The table containing the metadata of the cells of interest.
-- timepoints: A list of the timepoints in the dataset that are to be used for imputation
-- stimulus: Name of the stimulus, in case the data object contains cells stimulated by multiple different stimuli. Impute scGETs for only one cell population stimulated with one stimulus at a time. 
+- `input_obj`: The Seurat Object containing the data.
+- `metadata`: The table containing the metadata of the cells of interest.
+- `timepoints`: A list of the timepoints in the dataset that are to be used for imputation
+- `stimulus`: Name of the stimulus, in case the data object contains cells stimulated by multiple different stimuli. Impute scGETs for only one cell population stimulated with one stimulus at a time. 
 
 
 ### Parameters
 Several parameters can be tuned by the user based on the characteristics of the dataset. 
-- num_archetypes (default = 20): The number of cell subclusters at each timepoint. A larger number will better account for the single-cell distribution at each timepoint. A smaller number will reduce the capture of outlier behavior in the resulting ensemble of trajectories but will speed up computational time. Number specified must be less than the smallest number of measured cells at any particular timepoint.
-- num_sim_points (default = 100): The number of interpolated data points across the timecourse. A larger number will provide a smoother trajectory.
-- num_trajectories (default = 1000): The number of total cells expected in the population. scREALTIME assumes that scRNAseq data is from time-series data over a short time course, with minimal cell death or division. Thus the total number of cells over time is assumed to be constant. Too small a number may not fully explore the space allowed by the transition probability matrix that links cell archetypes across timepoints.
+- `num_archetypes` (default = 20): The number of cell subclusters at each timepoint. A larger number will better account for the single-cell distribution at each timepoint. A smaller number will reduce the capture of outlier behavior in the resulting ensemble of trajectories but will speed up computational time. Number specified must be less than the smallest number of measured cells at any particular timepoint.
+- `num_sim_points` (default = 100): The number of interpolated data points across the timecourse. A larger number will provide a smoother trajectory.
+- `num_trajectories` (default = 1000): The number of total cells expected in the population. scREALTIME assumes that scRNAseq data is from time-series data over a short time course, with minimal cell death or division. Thus the total number of cells over time is assumed to be constant. Too small a number may not fully explore the space allowed by the transition probability matrix that links cell archetypes across timepoints.
 
 ### Parameters (Advanced)
 Several other hyperparameters may also be tuned for advanced customization of the protocol, listed below alongside their default values: 
