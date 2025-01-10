@@ -150,15 +150,15 @@ scREALTIME = function(input_obj, metadata, num_archetypes=20, timepoints, num_tr
   }else if(prob_method == 'density'){
     print("Generating random walks based on cluster densities")
     for(i in 1:num_trajectories){
-      cur_prob = 1
+
       path <- c()
       for(j in 1:length(timepoints)){
         next_value = sample(c(1:num_archetypes), size = 1, prob = cluster_densities[,j])
-        cur_prob = cur_prob * cluster_densities[next_value,j]
+
         path <- c(path, next_value)
       }
       walks[[i]] <- path
-      walk_probs[i,j] <- cur_prob
+
     }
   }else{
     print('Invalid method for random walk probabilities')
