@@ -34,7 +34,7 @@ metadata = getMetaData(macro, stimulus = "LPS", timepoints= select_timepoints)
 reconst = scREALTIME(input_obj = macro, metadata = metadata, timepoints = select_timepoints, stimulus = "LPS",
 							num_archetypes = 20, num_sim_pts = 100, num_trajectories = 1000, 
 							reduction = 'pca', consensus_measure = 'median', interpolant = 'spline', 
-							data = "ISnorm", prob_method = 'distance', distance_metric = 'euclidean' ,
+							data_norm = "ISnorm", prob_method = 'distance', distance_metric = 'euclidean' ,
 							varFilter = T, exp_prob = 1) 
 							
 
