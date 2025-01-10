@@ -60,7 +60,7 @@ Several other hyperparameters may also be tuned for advanced customization of th
 - reduction = "pca": Dimensionality reduction to use ("pca","ica","nmf").
 - consensus_measure = “median”: Method to define cell archetypes ("mean", "median").
 - interpolant = “spline”: Method to interpolate timepoints ("spline", "linear").
-- data = "RNA": normalization from Seurat object to use (“RNA”, "SCT", "ISnorm").
+- data_norm = "RNA": normalization from Seurat object to use (“RNA”, "SCT", "ISnorm").
 - prob_method = "distance": Linkage probability based on a distance metric, or density of cells within archetypes (“distance”, “density”).
 - distance_metric = "euclidean": Distance metric to use to identify cell archetype links over timepoints. Must be one of "euclidean", "maximum", "manhattan", "canberra", "binary" or "minkowski".
 - varFilter = T: Filters out zero variance genes prior to k-means clustering.

@@ -15,7 +15,7 @@
 #' @param reduction = "pca" Dimensionality reduction to use, must be available in Seurat Object ("pca","ica","nmf")
 #' @param consensus_measure Method to define cell archetypes ("mean", "median")
 #' @param interpolant Method to interpolate timepoints ("spline","linear")
-#' @param data = "RNA" normalization from Seurat object to use ("RNA", "SCT", "ISnorm")
+#' @param data_norm = "RNA" normalization from Seurat object to use ("RNA", "SCT", "ISnorm")
 #' @param prob_method = "distance" Linkage probability based on a 'distance' metric, or 'density' of cells in archetypes("distance", "density")
 #' @param distance_metric = "euclidean" Distance metric to use to identify cell archetype links over timepoints. Must be one of "euclidean", "maximum", "manhattan", "canberra", "binary" or "minkowski".
 #' @param varFilter = T Filters out zero variance genes prior to kmeans clustering.
@@ -25,7 +25,7 @@
 # scREALTIME
 # Input a Seurat object of single cell data and returns list object containing single cell trajectories
 scREALTIME = function(input_obj, metadata, num_archetypes=20, timepoints, num_trajectories = 1000, num_sim_pts = 100,
-                      reduction = "pca", stimulus, consensus_measure = "median", interpolant="spline", data = "RNA", prob_method = 'distance', distance_metric = 'euclidean', varFilter = T, exp_prob = 1){
+                      reduction = "pca", stimulus, consensus_measure = "median", interpolant="spline", data_norm = "RNA", prob_method = 'distance', distance_metric = 'euclidean', varFilter = T, exp_prob = 1){
 
   # Retrieve desired data subset for each timepoint
   cells_by_timept <- list()
@@ -35,10 +35,10 @@ scREALTIME = function(input_obj, metadata, num_archetypes=20, timepoints, num_tr
   }
 
   # Retrieve RNA data based on specified normalization
-  if(data == 'RNA'){
+  if(data_norm == 'RNA'){
     RNA <- as.data.frame(input_obj@assays$RNA@data)
   }
-  else if(data == 'ISnorm'){
+  else if(data_norm == 'ISnorm'){
     RNA <- as.data.frame(input_obj@assays$ISnorm@data)
   }
   RNA <- t(RNA)
@@ -80,6 +80,12 @@ scREALTIME = function(input_obj, metadata, num_archetypes=20, timepoints, num_tr
   cluster_densities <- as.data.frame(prop.table(as.matrix(cluster_counts), 2))
   cluster_densities <- cluster_densities^(exp_prob)
 
+  # Run an unscaled PCA and store within Seurat object
+  input_obj <- FindVariableFeatures(object = input_obj, assay = data_norm)
+  input_obj <- ScaleData(object = input_obj, assay = data_norm)
+  input_obj[[data_norm]]@scale.data = as.matrix(input_obj[[data_norm]]@data) #places unscaled data into the scale.data slot
+  input_obj<- RunPCA(input_obj, assay = data_norm)
+
   # Retrieve PCA (or other dimensionality reduction) results from Seurat object
   if(toupper(reduction) == 'PCA'){
     pcscores = input_obj[['pca']]@cell.embeddings
@@ -113,8 +119,8 @@ scREALTIME = function(input_obj, metadata, num_archetypes=20, timepoints, num_tr
   aggreg_pcscores$timept <- sapply(strsplit(aggreg_pcscores$Group.1, split = "_"), `[`, 1)
   aggreg_pcscores$bin <- sapply(strsplit(aggreg_pcscores$Group.1, split = "_"), `[`, 2)
   col_orders = c(1,(ncol(aggreg_pcscores)), (ncol(aggreg_pcscores)-1), 2:(ncol(aggreg_pcscores)-2))
-  aggreg_pcscores <- aggreg_pcscores[order(aggreg_pcscores$timept),col_orders]
   aggreg_pcscores <- aggreg_pcscores[order(as.numeric(aggreg_pcscores$bin)),]
+  aggreg_pcscores <- aggreg_pcscores[order(aggreg_pcscores$timept),col_orders]
   rownames(aggreg_pcscores) = aggreg_pcscores$Group.1
 
   # Generate transition probability matrices based on distance between clusters
