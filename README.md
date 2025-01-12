@@ -28,7 +28,7 @@ We can use the macrophage example data provided in the 'output' folder to run sc
 
 ### Example Use
 ```
-macro = readRDS("./output/macrophage_M0_rep2only_500genes_DBEC.rds")
+macro = readRDS("./output/macrophage_M0_rep2only_500genes_DBEC_scGETs_LPS.rds")
 select_timepoints = c(0.0, 0.25, 1, 3, 8)
 metadata = getMetaData(macro, stimulus = "LPS", timepoints= select_timepoints)
 reconst = scREALTIME(input_obj = macro, metadata = metadata, timepoints = select_timepoints, stimulus = "LPS",
@@ -37,7 +37,7 @@ reconst = scREALTIME(input_obj = macro, metadata = metadata, timepoints = select
 							data_norm = "ISnorm", prob_method = 'distance', distance_metric = 'euclidean' ,
 							varFilter = T, exp_prob = 1) 
 							
-
+reconstructed_pc.traj = reconst$reconstructed_trajectories #Retrieve scGETs
 ```
 The outputs of the imputation method are stored in a user-specified object, in this case `reconst`. scGETs are stored in the slot `reconst$reconstructed_trajectories`.
 
