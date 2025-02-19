@@ -476,3 +476,116 @@ pheatmap(as.matrix(mat.numbers2.dcast[,-c(1,2)]), scale = "none",
          main = gene, annotation_row = annot.frame,
          annotation_colors = colors_list)
 
+###################################################
+# Optional: Calculate trajectory features ----
+###################################################
+#Calculate peak induction of each gene
+dynamics = data.frame()
+for (i in 1:dim(A)[3]){
+  print(i)
+  # gene_name = colnames(reconstructed_pc$reconstructed_trajectories)[i]
+  gene_name = colnames(mat.numbers)[i]
+  print(gene_name)
+  A.subset = as.data.frame(t(A[ , ,i]@data))
+  my.dataframe = cbind(label = labels, A.subset)
+  peak_amp <- apply(my.dataframe[,-1], 1, max) 
+  # tmp = data.frame(peak_amp =peak_amp, stimulus =labels, gene = gene_name)
+  tmp = data.frame(peak_amp =peak_amp, stimulus =labels,type=labels2, gene = gene_name)
+  dynamics <- rbind(dynamics, tmp)
+}
+# write.table(dynamics, "./trajectory/trajectory_features_M0rep2only_peakamp_k20.txt", quote=F,row.names = F, sep = "\t")
+
+dynamics = read.delim("./trajectory/trajectory_features_allM0M1M2_peakamp_k20.txt")
+ggplot(dynamics[grepl("Nos2$",dynamics$gene),], aes(stimulus, peak_amp))+
+  # facet_grid(~type)+
+  geom_point(position = "jitter",alpha = 0.5)+geom_violin(aes(color = stimulus), outlier.shape = NA)+ylim(0,1)+
+  stat_summary(fun.y = median, geom='point', size = 2, colour = "blue")+
+  theme_bw(base_size = 16)+theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),legend.position = "none")
+
+#peak fold change
+dynamics = data.frame()
+for (i in 1:dim(A)[3]){
+  print(i)
+  # gene_name = colnames(reconstructed_pc$reconstructed_trajectories)[i]
+  gene_name = colnames(mat.numbers)[i]
+  print(gene_name)
+  A.subset = as.data.frame(t(A[ , ,i]@data))
+  my.dataframe = cbind(label = labels, A.subset)
+  peak_amp <- apply(my.dataframe[,-1], 1, max) 
+  tmp = data.frame(peak_amp_lfc = log2((peak_amp/(my.dataframe$V1+0.01))+1), 
+                   peak_amp_fc = (peak_amp/(my.dataframe$V1+0.01)),
+                   time0_amp = my.dataframe$V1,
+                   stimulus =labels, gene = gene_name) #type=labels2,
+  dynamics <- rbind(dynamics, tmp)
+}
+# write.table(dynamics, "./trajectory/trajectory_features_M0rep2only_peakamplogFC_k20.txt", quote=F,row.names = F, sep = "\t")
+ggplot(dynamics[grepl("Tnf$",dynamics$gene),], aes(stimulus, peak_amp_lfc))+
+  geom_point(position = "jitter", alpha = 0.5)+geom_violin(aes(color = stimulus), outlier.shape = NA)+
+  stat_summary(fun.y = median, geom='point', size = 2, colour = "blue")+
+  theme_bw(base_size = 16)+theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "none")
+
+
+#Speed at time 1hr
+timept_tangent = num_timepts/8 +2 #for 1hr
+dynamics = data.frame()
+for (i in 1:dim(A)[3]){
+  print(i)
+  # gene_name = colnames(reconstructed_pc$reconstructed_trajectories)[i]
+  gene_name = colnames(mat.numbers)[i]
+  print(gene_name)
+  A.subset = as.data.frame(t(A[ , ,i]@data))
+  my.dataframe = cbind(label = labels, A.subset)
+  
+  colnames(my.dataframe)[-1] <- unique(mat.meta$time)
+  timeseg <- as.numeric(names(my.dataframe[,-1])[round(timept_tangent)+2]) - 
+    as.numeric(names(my.dataframe[,-1])[round(timept_tangent)-2])
+  rise <- my.dataframe[,round(timept_tangent)+2]- my.dataframe[,round(timept_tangent)-2]
+  
+  tmp = data.frame(speed1hr = (rise/timeseg), stimulus =labels, gene = gene_name) # type=labels2,
+  dynamics <- rbind(dynamics, tmp)
+}
+# write.table(dynamics, "./trajectory/trajectory_features_M0rep2only_speed1hr_k20.txt", quote=F,row.names = F, sep = "\t")
+
+ggplot(dynamics[grepl("Tnf$",dynamics$gene),], aes(stimulus, speed1hr))+
+  geom_point(position = "jitter",alpha=0.4)+geom_violin(aes(color = stimulus), outlier.shape = NA)+
+  stat_summary(fun.y = median, geom='point', size = 2, colour = "blue")+
+  theme_bw(base_size = 16)+theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "none")
+
+
+# Integral, total mRNA
+dynamics = data.frame()
+for (i in 1:dim(A)[3]){
+  tryCatch(
+    expr = {
+      print(i)
+      # gene_name = colnames(reconstructed_pc$reconstructed_trajectories)[i]
+      gene_name = colnames(mat.numbers)[i]
+      print(gene_name)
+      A.subset = as.data.frame(t(A[ , ,i]@data))
+      my.dataframe = cbind(label = labels, A.subset)
+      colnames(my.dataframe)[-1] <- unique(mat.meta$time)
+      
+      time <- unique(mat.meta$time)
+      integral <- apply(my.dataframe[,-1], 1, function(x) unlist(integrate(approxfun(time, x), range(time)[1], range(time)[2],rel.tol =.Machine$double.eps^.2))$value)
+      
+      tmp = data.frame(integral = integral, stimulus =labels, gene = gene_name) #type=labels2,
+      dynamics <- rbind(dynamics, tmp)
+    }, error = function(e){
+      message('Caught an error!')
+      integral <- NA
+      tmp = data.frame(integral = integral, stimulus =labels, gene = gene_name) #type=labels2,
+      dynamics <- rbind(dynamics, tmp)
+    }
+  )
+}
+# write.table(dynamics, "./trajectory/trajectory_features_M0rep2only_integral_k20.txt", quote=F,row.names = F, sep = "\t")
+
+# dynamics = read.delim("./trajectory/trajectory_features_allM0M1M2scaled_integral_k20.txt")
+ggplot(dynamics[grepl("Nfkbia$",dynamics$gene),], aes(stimulus, integral))+
+  geom_violin(aes(color = stimulus), outlier.shape = NA)+geom_point(position = "jitter", alpha = 0.5, size=0.1)+
+  facet_grid(~type)+
+  stat_summary(fun.y = median, geom='point', size = 2, colour = "blue")+
+  theme_bw(base_size = 16)+theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "none")
+
+
+
