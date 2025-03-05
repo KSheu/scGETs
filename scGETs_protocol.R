@@ -35,8 +35,8 @@ reconstructed_pc = reconst$reconstructed_trajectories
 #############################################################
 
 # Install and load packages
-library(data.table);library(reshape2);library(pheatmap); # data formatting packages
-library(RColorBrewer);library(ggpubr);library(ggplot2); # visualization packages
+library(data.table);library(reshape2);library(pheatmap);library(resample) # data formatting packages
+library(RColorBrewer);library(ggpubr);library(ggplot2);library(pheatmap) # visualization packages
 library(Seurat) #single-cell analysis package
 
 
@@ -180,7 +180,7 @@ for(i in timepoints){
   }
 }
 
-# Clerical in order to make cluster counts data frame more clean
+# Clean up cluster counts dataframe
 col_omit <- c(1:length(timepoints))*2 - 1
 cluster_counts <- cluster_counts[, -col_omit]
 rownames(cluster_counts) <- c(1:num_archetypes)
@@ -414,14 +414,15 @@ mat.numbers = apply(mat.numbers, MARGIN = 2, FUN = function(X) (X - min(X))/diff
 #mat.numbers[mat.numbers<=0] <-0 #set negative to 0
 mat.numbers = cbind(mat.numbers, reconstructed_pc.traj[,grepl("time|path|stimulus|type|path_stim", colnames(reconstructed_pc.traj))])
 
-p4=ggplot(mat.numbers[grepl("",mat.numbers$stimulus)&grepl("",mat.numbers$type),], 
-       aes(time,Nfkbia, group = path_stim)) +
+gene = "Cxcl10"
+ggplot(mat.numbers[grepl("",mat.numbers$stimulus)&grepl("",mat.numbers$type),], 
+       aes(time,get(gene), group = path_stim)) +
   geom_vline(xintercept = c(0,0.25,1,3,8), linetype="dotted")+ #theme(axis.title.x=element_blank(),axis.title.y=element_blank())+
   # geom_vline(xintercept = c(0,0.5,1,3,5,8), linetype="dotted")+
   geom_line(aes(group = as.factor(path_stim), color = type), alpha = 0.05)+
-  theme_bw(base_size = 12)+theme(legend.position = "none")
+  theme_bw(base_size = 12)+theme(legend.position = "none")+ylab(gene)
 
-p1|p2|p3|p4
+
 
 #plot trajectories in heatmap form
 gene = "Ccl5"
@@ -480,110 +481,100 @@ pheatmap(as.matrix(mat.numbers2.dcast[,-c(1,2)]), scale = "none",
 # Optional: Calculate trajectory features ----
 ###################################################
 #Calculate peak induction of each gene
+mat.numbers = reconstructed_pc[,!grepl("time|path", colnames(reconstructed_pc))]
+mat.numbers = apply(mat.numbers, MARGIN = 2, FUN = function(X) (X - min(X))/diff(range(X))) #rescale each gene column 0-1 over all stims
+mat.numbers = cbind(mat.numbers, reconstructed_pc[,grepl("time|path", colnames(reconstructed_pc))])
+
 dynamics = data.frame()
-for (i in 1:dim(A)[3]){
+for (i in colnames(mat.numbers)[!grepl("time|path", colnames(mat.numbers))]){
   print(i)
-  # gene_name = colnames(reconstructed_pc$reconstructed_trajectories)[i]
-  gene_name = colnames(mat.numbers)[i]
-  print(gene_name)
-  A.subset = as.data.frame(t(A[ , ,i]@data))
-  my.dataframe = cbind(label = labels, A.subset)
+  gene_name = i
+  A.subset = reshape2::dcast(mat.numbers, path~time, value.var = i)
+  my.dataframe = cbind(label = stimulus, A.subset[,-1])
   peak_amp <- apply(my.dataframe[,-1], 1, max) 
-  # tmp = data.frame(peak_amp =peak_amp, stimulus =labels, gene = gene_name)
-  tmp = data.frame(peak_amp =peak_amp, stimulus =labels,type=labels2, gene = gene_name)
+  tmp = data.frame(peak_amp =peak_amp, stimulus =stimulus, gene = gene_name)
   dynamics <- rbind(dynamics, tmp)
 }
-# write.table(dynamics, "./trajectory/trajectory_features_M0rep2only_peakamp_k20.txt", quote=F,row.names = F, sep = "\t")
 
-dynamics = read.delim("./trajectory/trajectory_features_allM0M1M2_peakamp_k20.txt")
-ggplot(dynamics[grepl("Nos2$",dynamics$gene),], aes(stimulus, peak_amp))+
-  # facet_grid(~type)+
-  geom_point(position = "jitter",alpha = 0.5)+geom_violin(aes(color = stimulus), outlier.shape = NA)+ylim(0,1)+
+gene = "Cxcl10"
+ggplot(dynamics[grepl(paste0(gene,"$"),dynamics$gene),], aes(stimulus, peak_amp))+
+  geom_violin(aes(color = stimulus))+geom_point(position = "jitter",alpha = 0.5)+
   stat_summary(fun.y = median, geom='point', size = 2, colour = "blue")+
   theme_bw(base_size = 16)+theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),legend.position = "none")
 
 #peak fold change
 dynamics = data.frame()
-for (i in 1:dim(A)[3]){
+for (i in colnames(mat.numbers)[!grepl("time|path", colnames(mat.numbers))]){
   print(i)
-  # gene_name = colnames(reconstructed_pc$reconstructed_trajectories)[i]
-  gene_name = colnames(mat.numbers)[i]
-  print(gene_name)
-  A.subset = as.data.frame(t(A[ , ,i]@data))
-  my.dataframe = cbind(label = labels, A.subset)
+  gene_name = i
+  A.subset = reshape2::dcast(mat.numbers, path~time, value.var = i)
+  my.dataframe = cbind(label = stimulus, A.subset[,-1])
   peak_amp <- apply(my.dataframe[,-1], 1, max) 
-  tmp = data.frame(peak_amp_lfc = log2((peak_amp/(my.dataframe$V1+0.01))+1), 
-                   peak_amp_fc = (peak_amp/(my.dataframe$V1+0.01)),
-                   time0_amp = my.dataframe$V1,
-                   stimulus =labels, gene = gene_name) #type=labels2,
+  tmp = data.frame(peak_amp =peak_amp, 
+                   peak_amp_lfc = log2((peak_amp/(my.dataframe[,2]+0.01))+1), #2nd col = time0
+                   peak_amp_fc = (peak_amp/(my.dataframe[,2]+0.01)),
+                   time0_amp = my.dataframe[,2],
+                   stimulus =stimulus, gene = gene_name) 
   dynamics <- rbind(dynamics, tmp)
 }
-# write.table(dynamics, "./trajectory/trajectory_features_M0rep2only_peakamplogFC_k20.txt", quote=F,row.names = F, sep = "\t")
-ggplot(dynamics[grepl("Tnf$",dynamics$gene),], aes(stimulus, peak_amp_lfc))+
-  geom_point(position = "jitter", alpha = 0.5)+geom_violin(aes(color = stimulus), outlier.shape = NA)+
+
+gene = "Tnf"
+ggplot(dynamics[grepl(paste0(gene,"$"),dynamics$gene),], aes(stimulus, peak_amp_lfc))+
+  geom_violin(aes(color = stimulus))+geom_point(position = "jitter", alpha = 0.5)+
   stat_summary(fun.y = median, geom='point', size = 2, colour = "blue")+
   theme_bw(base_size = 16)+theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "none")
 
 
 #Speed at time 1hr
-timept_tangent = num_timepts/8 +2 #for 1hr
 dynamics = data.frame()
-for (i in 1:dim(A)[3]){
+for (i in colnames(mat.numbers)[!grepl("time|path", colnames(mat.numbers))]){
   print(i)
-  # gene_name = colnames(reconstructed_pc$reconstructed_trajectories)[i]
-  gene_name = colnames(mat.numbers)[i]
-  print(gene_name)
-  A.subset = as.data.frame(t(A[ , ,i]@data))
-  my.dataframe = cbind(label = labels, A.subset)
-  
-  colnames(my.dataframe)[-1] <- unique(mat.meta$time)
+  gene_name = i
+  A.subset = reshape2::dcast(mat.numbers, path~time, value.var = i)
+  my.dataframe = cbind(label = stimulus, A.subset[,-1])
+  timept_tangent = which(colnames(my.dataframe[,-1]) == "1") #for slope at 1hr
+
   timeseg <- as.numeric(names(my.dataframe[,-1])[round(timept_tangent)+2]) - 
     as.numeric(names(my.dataframe[,-1])[round(timept_tangent)-2])
-  rise <- my.dataframe[,round(timept_tangent)+2]- my.dataframe[,round(timept_tangent)-2]
+  rise <- my.dataframe[,-1][,round(timept_tangent)+2]- my.dataframe[,round(timept_tangent)-2]
   
-  tmp = data.frame(speed1hr = (rise/timeseg), stimulus =labels, gene = gene_name) # type=labels2,
+  tmp = data.frame(speed1hr = (rise/timeseg), stimulus =stimulus, gene = gene_name) 
   dynamics <- rbind(dynamics, tmp)
 }
-# write.table(dynamics, "./trajectory/trajectory_features_M0rep2only_speed1hr_k20.txt", quote=F,row.names = F, sep = "\t")
 
-ggplot(dynamics[grepl("Tnf$",dynamics$gene),], aes(stimulus, speed1hr))+
-  geom_point(position = "jitter",alpha=0.4)+geom_violin(aes(color = stimulus), outlier.shape = NA)+
+gene = "Tnf"
+ggplot(dynamics[grepl(paste0(gene,"$"),dynamics$gene),], aes(stimulus, speed1hr))+
+  geom_violin(aes(color = stimulus))+geom_point(position = "jitter",alpha=0.4)+
   stat_summary(fun.y = median, geom='point', size = 2, colour = "blue")+
   theme_bw(base_size = 16)+theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "none")
 
 
 # Integral, total mRNA
 dynamics = data.frame()
-for (i in 1:dim(A)[3]){
+for (i in colnames(mat.numbers)[!grepl("time|path", colnames(mat.numbers))]){
   tryCatch(
     expr = {
       print(i)
-      # gene_name = colnames(reconstructed_pc$reconstructed_trajectories)[i]
-      gene_name = colnames(mat.numbers)[i]
-      print(gene_name)
-      A.subset = as.data.frame(t(A[ , ,i]@data))
-      my.dataframe = cbind(label = labels, A.subset)
-      colnames(my.dataframe)[-1] <- unique(mat.meta$time)
+      gene_name = i
+      A.subset = reshape2::dcast(mat.numbers, path~time, value.var = i)
+      my.dataframe = cbind(label = stimulus, A.subset[,-1])
       
-      time <- unique(mat.meta$time)
+      time <- as.numeric(colnames(my.dataframe[-1]))
       integral <- apply(my.dataframe[,-1], 1, function(x) unlist(integrate(approxfun(time, x), range(time)[1], range(time)[2],rel.tol =.Machine$double.eps^.2))$value)
       
-      tmp = data.frame(integral = integral, stimulus =labels, gene = gene_name) #type=labels2,
+      tmp = data.frame(integral = integral, stimulus =stimulus, gene = gene_name) 
       dynamics <- rbind(dynamics, tmp)
     }, error = function(e){
       message('Caught an error!')
       integral <- NA
-      tmp = data.frame(integral = integral, stimulus =labels, gene = gene_name) #type=labels2,
+      tmp = data.frame(integral = integral, stimulus =stimulus, gene = gene_name) 
       dynamics <- rbind(dynamics, tmp)
     }
   )
 }
-# write.table(dynamics, "./trajectory/trajectory_features_M0rep2only_integral_k20.txt", quote=F,row.names = F, sep = "\t")
-
-# dynamics = read.delim("./trajectory/trajectory_features_allM0M1M2scaled_integral_k20.txt")
-ggplot(dynamics[grepl("Nfkbia$",dynamics$gene),], aes(stimulus, integral))+
-  geom_violin(aes(color = stimulus), outlier.shape = NA)+geom_point(position = "jitter", alpha = 0.5, size=0.1)+
-  facet_grid(~type)+
+gene = "Tnf"
+ggplot(dynamics[grepl(paste0(gene,"$"),dynamics$gene),], aes(stimulus, integral))+
+  geom_violin(aes(color = stimulus))+geom_point(position = "jitter", alpha = 0.5)+
   stat_summary(fun.y = median, geom='point', size = 2, colour = "blue")+
   theme_bw(base_size = 16)+theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "none")
 
