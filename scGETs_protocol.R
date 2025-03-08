@@ -1,5 +1,10 @@
 # scGETs imputation method
-# Ksheu, Nov 2024
+# last mod: Ksheu, Mar 2025
+
+#Imputation of stimulus-induced single-cell gene expression trajectories (scGETs) from time-series scRNAseq data
+#STAR Protocols
+#Katherine M. Sheu, Alexander Hoffmann
+  
 
 #############################################################
 
@@ -480,7 +485,7 @@ pheatmap(as.matrix(mat.numbers2.dcast[,-c(1,2)]), scale = "none",
 ###################################################
 # Optional: Calculate trajectory features ----
 ###################################################
-#Calculate peak induction of each gene
+#Calculate peak induction of each gene--------------------------------
 mat.numbers = reconstructed_pc[,!grepl("time|path", colnames(reconstructed_pc))]
 mat.numbers = apply(mat.numbers, MARGIN = 2, FUN = function(X) (X - min(X))/diff(range(X))) #rescale each gene column 0-1 over all stims
 mat.numbers = cbind(mat.numbers, reconstructed_pc[,grepl("time|path", colnames(reconstructed_pc))])
@@ -502,7 +507,7 @@ ggplot(dynamics[grepl(paste0(gene,"$"),dynamics$gene),], aes(stimulus, peak_amp)
   stat_summary(fun.y = median, geom='point', size = 2, colour = "blue")+
   theme_bw(base_size = 16)+theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),legend.position = "none")
 
-#peak fold change
+#Calculate max log fold change--------------------------------------
 dynamics = data.frame()
 for (i in colnames(mat.numbers)[!grepl("time|path", colnames(mat.numbers))]){
   print(i)
@@ -525,7 +530,7 @@ ggplot(dynamics[grepl(paste0(gene,"$"),dynamics$gene),], aes(stimulus, peak_amp_
   theme_bw(base_size = 16)+theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "none")
 
 
-#Speed at time 1hr
+#Calculate Speed at time 1hr -------------------------------------------
 dynamics = data.frame()
 for (i in colnames(mat.numbers)[!grepl("time|path", colnames(mat.numbers))]){
   print(i)
@@ -549,7 +554,7 @@ ggplot(dynamics[grepl(paste0(gene,"$"),dynamics$gene),], aes(stimulus, speed1hr)
   theme_bw(base_size = 16)+theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "none")
 
 
-# Integral, total mRNA
+# Calculate Integral, total mRNA ------------------------------------
 dynamics = data.frame()
 for (i in colnames(mat.numbers)[!grepl("time|path", colnames(mat.numbers))]){
   tryCatch(
