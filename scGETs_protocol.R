@@ -485,11 +485,12 @@ pheatmap(as.matrix(mat.numbers2.dcast[,-c(1,2)]), scale = "none",
 ###################################################
 # Optional: Calculate trajectory features ----
 ###################################################
-#Calculate peak induction of each gene--------------------------------
+# Rescale numbers 0-1 for each gene, across all cells
 mat.numbers = reconstructed_pc[,!grepl("time|path", colnames(reconstructed_pc))]
 mat.numbers = apply(mat.numbers, MARGIN = 2, FUN = function(X) (X - min(X))/diff(range(X))) #rescale each gene column 0-1 over all stims
 mat.numbers = cbind(mat.numbers, reconstructed_pc[,grepl("time|path", colnames(reconstructed_pc))])
 
+#Calculate peak induction of each gene--------------------------------
 dynamics = data.frame()
 for (i in colnames(mat.numbers)[!grepl("time|path", colnames(mat.numbers))]){
   print(i)
@@ -516,7 +517,8 @@ for (i in colnames(mat.numbers)[!grepl("time|path", colnames(mat.numbers))]){
   my.dataframe = cbind(label = stimulus, A.subset[,-1])
   peak_amp <- apply(my.dataframe[,-1], 1, max) 
   tmp = data.frame(peak_amp =peak_amp, 
-                   peak_amp_lfc = log2((peak_amp/(my.dataframe[,2]+0.01))+1), #2nd col = time0
+                   #2nd col = time0
+                   peak_amp_lfc = log2((peak_amp/(my.dataframe[,2]+0.01))+1), 
                    peak_amp_fc = (peak_amp/(my.dataframe[,2]+0.01)),
                    time0_amp = my.dataframe[,2],
                    stimulus =stimulus, gene = gene_name) 
