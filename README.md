@@ -11,9 +11,9 @@ For complete details on the use and execution of this protocol, please refer to 
 
 ## Dependencies
 - Seurat
-- Nbclust
 - matrixStats
 - gridExtra
+- resample
 
 ## Install
 Tested compatilbility with R version >=4.2.1.\
@@ -33,7 +33,8 @@ We can use the macrophage example data provided in the 'input' folder to run scR
 
 ### Example Use
 ```
-macro = readRDS("./input/macrophage_M0_rep2only_500genes_DBEC_scGETs_LPS.rds")
+#macro = readRDS("./inst/input/macrophage_M0_rep2only_500genes_DBEC_scGETs_LPS.rds")
+macro = readRDS(system.file("input", "macrophage_M0_rep2only_500genes_DBEC_scGETs_LPS.rds", package="scGETs"))
 select_timepoints = c(0.0, 0.25, 1, 3, 8)
 metadata = getMetaData(macro, stimulus = "LPS", timepoints= select_timepoints)
 reconst = scREALTIME(input_obj = macro, metadata = metadata, timepoints = select_timepoints, stimulus = "LPS",
@@ -58,7 +59,7 @@ mat.numbers = apply(mat.numbers, MARGIN = 2, FUN = function(X) (X - min(X))/diff
 # Plot the result as lineplots
 mat.numbers = cbind(mat.numbers, reconstructed_pc.traj[,grepl("time|path|stimulus|path_stim", colnames(reconstructed_pc.traj))])
 
-gene = “Cxcl10”
+gene = "Cxcl10"
 ggplot(mat.numbers[grepl("",mat.numbers$stimulus),], aes(time,get(gene), group = path_stim)) +
   geom_vline(xintercept = c(0,0.25,1,3,8), linetype="dotted")+ 
   geom_line(aes(group = as.factor(path_stim)), alpha = 0.05)+
