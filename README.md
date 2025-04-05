@@ -33,7 +33,6 @@ We can use the macrophage example data provided in the 'input' folder to run scR
 
 ### Example Use
 ```
-#macro = readRDS("./inst/input/macrophage_M0_rep2only_500genes_DBEC_scGETs_LPS.rds")
 macro = readRDS(system.file("input", "macrophage_M0_rep2only_500genes_DBEC_scGETs_LPS.rds", package="scGETs"))
 select_timepoints = c(0.0, 0.25, 1, 3, 8)
 metadata = getMetaData(macro, stimulus = "LPS", timepoints= select_timepoints)
