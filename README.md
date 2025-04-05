@@ -20,7 +20,7 @@ Tested compatilbility with R version >=4.2.1.\
 Install with: 
 ```
 library(devtools)
-install_github("ksheu/scGETs")
+install_github("ksheu/scGETs") 
 library(scGETs)
 ```
 
@@ -33,7 +33,7 @@ We can use the macrophage example data provided in the 'input' folder to run scR
 
 ### Example Use
 ```
-macro = readRDS("./output/macrophage_M0_rep2only_500genes_DBEC_scGETs_LPS.rds")
+macro = readRDS("./input/macrophage_M0_rep2only_500genes_DBEC_scGETs_LPS.rds")
 select_timepoints = c(0.0, 0.25, 1, 3, 8)
 metadata = getMetaData(macro, stimulus = "LPS", timepoints= select_timepoints)
 reconst = scREALTIME(input_obj = macro, metadata = metadata, timepoints = select_timepoints, stimulus = "LPS",
