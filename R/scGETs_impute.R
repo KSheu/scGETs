@@ -279,16 +279,9 @@ scREALTIME = function(input_obj, metadata, num_archetypes=20, timepoints, num_tr
 
 getMetaData = function(input_obj, stimulus, timepoints){
   require('Seurat')
-  require('factoextra')
-  require('matrixStats')
-  require('cowplot')
   require('ggplot2')
   require('RColorBrewer')
-  require('NbClust')
-  require('devtools')
-  require('NMF')
-  require('gridExtra')
-  require('Rfast')
+
   pca <- input_obj[['pca']]
   metadata <- as.data.frame(input_obj@meta.data)
 
