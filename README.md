@@ -46,6 +46,25 @@ reconstructed_pc.traj = reconst$reconstructed_trajectories #Retrieve scGETs
 ```
 The outputs of the imputation method are stored in a user-specified object, in this case `reconst`. scGETs are stored in the slot `reconst$reconstructed_trajectories`.
 
+#### Plot the example output
+```
+reconstructed_pc.traj$stimulus = "LPS"
+reconstructed_pc.traj$path_stim = paste0(reconstructed_pc.traj$path,"_", reconstructed_pc.traj$stimulus)
+mat.numbers = reconstructed_pc.traj[,!grepl("time|path|stimulus|path_stim", colnames(reconstructed_pc.traj))]
+
+# Rescale each gene column to range from 0-1
+mat.numbers = apply(mat.numbers, MARGIN = 2, FUN = function(X) (X - min(X))/diff(range(X))) 
+
+# Plot the result as lineplots
+mat.numbers = cbind(mat.numbers, reconstructed_pc.traj[,grepl("time|path|stimulus|path_stim", colnames(reconstructed_pc.traj))])
+
+gene = “Cxcl10”
+ggplot(mat.numbers[grepl("",mat.numbers$stimulus),], aes(time,get(gene), group = path_stim)) +
+  geom_vline(xintercept = c(0,0.25,1,3,8), linetype="dotted")+ 
+  geom_line(aes(group = as.factor(path_stim)), alpha = 0.05)+
+  theme_bw(base_size = 14)+theme(legend.position = "none")+ylab(gene)
+```
+
 
 ### Input
 Parameters specifying the input data are:
@@ -53,28 +72,6 @@ Parameters specifying the input data are:
 - `metadata`: The table containing the metadata of the cells of interest.
 - `timepoints`: A list of the timepoints in the dataset that are to be used for imputation
 - `stimulus`: Name of the stimulus, in case the data object contains cells stimulated by multiple different stimuli. Impute scGETs for only one cell population stimulated with one stimulus at a time. 
-
-### Plot the output
-```
-reconstructed_pc.traj$stimulus = stimulus
-reconstructed_pc.traj$type = "M0"
-reconstructed_pc.traj$path_stim = paste0(reconstructed_pc.traj$path,"_", reconstructed_pc.traj$stimulus)
-mat.numbers = reconstructed_pc.traj[,!grepl("time|path|stimulus|type|path_stim", colnames(reconstructed_pc.traj))]
-
-# Rescale each gene column to range from 0-1
-mat.numbers = apply(mat.numbers, MARGIN = 2, FUN = function(X) (X - min(X))/diff(range(X))) 
-
-# Plot the result as lineplots
-mat.numbers = cbind(mat.numbers, reconstructed_pc.traj[,grepl("time|path|stimulus|type|path_stim", colnames(reconstructed_pc.traj))])
-
-gene = “Cxcl10”
-ggplot(mat.numbers[grepl("",mat.numbers$stimulus)&grepl("",mat.numbers$type),], 
-       aes(time,get(gene), group = path_stim)) +
-  geom_vline(xintercept = c(0,0.25,1,3,8), linetype="dotted")+ 
-  geom_line(aes(group = as.factor(path_stim), color = type), alpha = 0.05)+
-  theme_bw(base_size = 14)+theme(legend.position = "none")+ylab(gene)
-```
-
 
 ### Parameters
 Several parameters can be tuned by the user based on the characteristics of the dataset. 
